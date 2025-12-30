@@ -1,222 +1,187 @@
 import streamlit as st
+import random
 import pandas as pd
 import numpy as np
-import random
 import time
-import altair as alt
+from collections import Counter
 
-# -------------------------------------------------------
-# APP HEADER
-# -------------------------------------------------------
-st.set_page_config(page_title="Big Data – Text & Audio NoSQL Demo", layout="wide")
-st.title("🧠 Big Data Demo — Text & Audio in NoSQL Databases")
-st.write("Realistic simulation of how text reviews, tweets, economics data & audio are stored, retrieved & analyzed.")
+# ---------------- APP CONFIG ----------------
+st.set_page_config(page_title="Text Big Data + NoSQL Demo", layout="wide")
+st.title("🧠 Text Big Data + NoSQL Interactive Demo")
+st.write("""
+This app demonstrates how **text data** is stored in different NoSQL databases,
+how analytics are done, and how large-scale text datasets feel in real life.
+""")
 
+# ---------------- GENERATE DATA ----------------
+def generate_reviews(n=1000):
+    customers = ["Riya","Arjun","Sam","Pooja","Kunal","Aisha","Rohan","Mira"]
+    sentiments = ["good","excellent","bad","worst","amazing","poor","satisfying","awesome"]
+    items = ["iPhone","Laptop","Headphones","Shoes","Smartwatch","Camera"]
 
-# -------------------------------------------------------
-# SIDEBAR
-# -------------------------------------------------------
-mode = st.sidebar.radio(
-    "Choose Demo",
-    ["📝 Text Data (Tweets / Reviews)",
-     "💰 Economics Text Big Data",
-     "🎧 Audio Big Data Use Case"]
+    data=[]
+    for i in range(n):
+        data.append({
+            "user": random.choice(customers),
+            "review": f"{random.choice(items)} is {random.choice(sentiments)} and I feel {random.choice(sentiments)} using it!",
+            "rating": random.randint(1,5)
+        })
+    return pd.DataFrame(data)
+
+def generate_tweets(n=1000):
+    topics=["#BigData","#UPI","#India","#Budget2025","#Tech","#Startups"]
+    moods=["love","hate","confused about","excited for","worried about","happy with"]
+    entities=["economy","government","banks","technology","students","jobs"]
+
+    tweets=[]
+    for i in range(n):
+        tweets.append({
+            "user":"user"+str(random.randint(101,999)),
+            "tweet":f"I {random.choice(moods)} {random.choice(entities)} {random.choice(topics)}",
+            "likes": random.randint(0,5000)
+        })
+    return pd.DataFrame(tweets)
+
+def generate_economics_text(n=1000):
+    cities=["Mumbai","Delhi","Pune","Chennai","Bangalore"]
+    actions=["spending increased","inflation rising","prices stable","strong demand","GDP growth improving"]
+    sectors=["food","fuel","housing","education","health"]
+
+    eco=[]
+    for i in range(n):
+        eco.append({
+            "city": random.choice(cities),
+            "report": f"In {random.choice(cities)}, {random.choice(actions)} especially in {random.choice(sectors)} sector.",
+            "impact_score": random.randint(1,10)
+        })
+    return pd.DataFrame(eco)
+
+# ---------------- CREATE BIG DATA ----------------
+reviews_df = generate_reviews()
+tweets_df = generate_tweets()
+eco_df = generate_economics_text()
+
+db_type = st.sidebar.radio(
+    "Choose Dataset",
+    ["⭐ Customer Reviews (NLP + NoSQL)",
+     "🐦 Tweets & Social Media Analytics",
+     "💰 Economics Text Data Analytics"]
 )
 
+# ==================================================
+# ⭐ CUSTOMER REVIEWS
+# ==================================================
+if db_type.startswith("⭐"):
+    st.header("⭐ Customer Reviews — Text Big Data + NoSQL")
 
-# ======================================================
-# 📝 TEXT DATA — SOCIAL + REVIEWS
-# ======================================================
-if mode.startswith("📝"):
-    st.header("📝 Text Big Data — Social Media & Customer Reviews")
+    st.write("### Sample of Stored Reviews (1000 real-like records generated)")
+    st.dataframe(reviews_df.head(10))
 
-    # ----------- CREATE BIG TEXT DATASET -----------
-    customers = ["Riya","Aman","Ali","Sarah","John","Neha","Kiran","Priya","David"]
-    cities = ["Mumbai","Delhi","Pune","Chennai","Hyderabad","Bangalore"]
-    sentiments = ["Positive","Neutral","Negative"]
+    # ---------- How Stored in NoSQL ----------
+    st.subheader("📦 How This Looks in a Document Database (MongoDB Style)")
+    st.json(reviews_df.head(3).to_dict(orient="records"))
 
-    text_data = []
-
-    sample_reviews = [
-        "Absolutely loved the product 😍",
-        "Worst experience ever 👎",
-        "Service could be better but okay",
-        "Amazing speed and great interface!",
-        "Highly disappointed 😡",
-        "Good value for money 👍",
-        "Not worth the price",
-        "Pretty decent overall",
-        "Customer support was fantastic!"
-    ]
-
-    for i in range(5000):
-        text_data.append({
-            "user": random.choice(customers),
-            "city": random.choice(cities),
-            "review": random.choice(sample_reviews),
-            "rating": random.randint(1,5),
-            "sentiment": random.choice(sentiments)
-        })
-
-    df = pd.DataFrame(text_data)
-
-    st.subheader("📂 Example Stored Reviews (Document DB Style — MongoDB)")
-    st.json(df.sample(3).to_dict(orient="records"))
-
-    st.info("In **Document Databases (MongoDB)** each review is stored as a JSON-like document — flexible, scalable, perfect for text 🎯")
-
-    # ----------- ANALYTICS SECTION -----------
-    st.subheader("📊 Real Analytics on Text Big Data")
-
-    col1,col2,col3 = st.columns(3)
-
-    with col1:
-        st.write("### 🌎 Reviews by City")
-        chart = df.groupby("city")["review"].count().reset_index()
-        st.bar_chart(chart.set_index("city"))
-
-    with col2:
-        st.write("### ⭐ Rating Distribution")
-        st.bar_chart(df["rating"].value_counts().sort_index())
-
-    with col3:
-        st.write("### 🙂 Sentiment Spread")
-        st.bar_chart(df["sentiment"].value_counts())
-
-    # ----------- SEARCH LIKE A NO-SQL QUERY -----------
-    st.subheader("🔎 Search Like NoSQL Querying")
-
-    search_city = st.selectbox("Filter by City", ["All"] + cities)
-
-    if search_city != "All":
-        st.write(df[df["city"]==search_city].head(10))
-    else:
-        st.write(df.head(10))
-
-    st.success("""
-NoSQL Power:
-✔ Flexible text storage  
-✔ Handles unstructured big data  
-✔ Fast search + analytics  
-✔ Great for social platforms like Twitter, Instagram
+    st.subheader("🔑 How Looks in Key-Value (Redis Style)")
+    st.code("""
+key: review:101
+value: {
+ "user":"Riya",
+ "review":"iPhone is excellent...",
+ "rating":5
+}
 """)
 
+    st.subheader("📚 Column Store Representation (Analytics Focused)")
+    st.code("""
+user: Riya, Arjun, Sam...
+review: text...
+rating: 4, 5, 3, 2...
+""")
 
-# ======================================================
-# 💰 ECONOMICS — TEXT UPI & POLICY FEEDBACK
-# ======================================================
-elif mode.startswith("💰"):
-    st.header("💰 Economics — Text Big Data Example")
-
-    st.write("Consider **UPI feedback, RBI opinions, policy reactions, spending behaviour comments** collected at scale.")
-
-    # Create Big Fake UPI Economics Opinion Data
-    economics_text = []
-    policy_comments = [
-        "UPI is boosting digital economy massively",
-        "Charges on transactions are worrying",
-        "Digital payments are convenient",
-        "Security concerns exist but improving",
-        "Government policies are encouraging cashless economy",
-        "Banks need to improve success rate",
-    ]
-
-    cities = ["Mumbai","Delhi","Pune","Chennai","Hyderabad","Bangalore"]
-
-    for i in range(4000):
-        economics_text.append({
-            "user": random.choice(["Economist","Student","Citizen","Trader","Shopkeeper"]),
-            "comment": random.choice(policy_comments),
-            "city": random.choice(cities),
-            "sentiment": random.choice(["Positive","Neutral","Negative"])
-        })
-
-    eco_df = pd.DataFrame(economics_text)
-
-    st.subheader("📄 Stored Economics Documents (Document DB)")
-    st.json(eco_df.sample(3).to_dict(orient="records"))
-
-    st.subheader("📊 Policy Analytics")
+    st.markdown("---")
+    st.subheader("📊 NLP Style Analytics")
 
     col1,col2 = st.columns(2)
 
     with col1:
-        st.write("### City Contribution to Digital Economy Conversation")
-        st.bar_chart(eco_df["city"].value_counts())
+        if st.button("Compute Average Rating"):
+            avg = round(reviews_df["rating"].mean(),2)
+            st.success(f"Average Rating = {avg}")
 
     with col2:
-        st.write("### Sentiment Towards Digital Payments")
-        st.bar_chart(eco_df["sentiment"].value_counts())
+        if st.button("Most Common Sentiment Word"):
+            words = " ".join(reviews_df["review"]).lower().split()
+            counter = Counter(words)
+            common = counter.most_common(5)
+            st.info(common)
 
-    st.success("""
-Economics + NoSQL:
-✔ Collect public policy opinions  
-✔ Analyze sentiment  
-✔ Help RBI / Govt shape policies  
-✔ Understand digital economy adoption  
+    st.bar_chart(reviews_df["rating"].value_counts())
+
+    st.success("This is how e-commerce platforms analyze customer text at scale.")
+
+# ==================================================
+# 🐦 TWEETS
+# ==================================================
+elif db_type.startswith("🐦"):
+    st.header("🐦 Social Media Text — Tweet Big Data Analytics")
+
+    st.write("### Live-Like Twitter Data (1000 Records)")
+    st.dataframe(tweets_df.head(10))
+
+    st.subheader("📦 Stored in Document DB (JSON Style)")
+    st.json(tweets_df.head(3).to_dict(orient="records"))
+
+    st.subheader("📚 Column Store View")
+    st.code("""
+user: user222, user431...
+tweet: text...
+likes: 120, 344, 20...
 """)
 
-
-# ======================================================
-# 🎧 AUDIO BIG DATA
-# ======================================================
-elif mode.startswith("🎧"):
-    st.header("🎧 Audio Big Data — Stored in NoSQL")
-
-    st.write("Think of **Call Center recordings, Spotify streaming, Voice Assistants, Speech Analytics** 🎤")
-
-    # ---------- AUDIO METADATA (Stored in NoSQL) ----------
-    st.subheader("📀 How Audio is Stored in NoSQL")
-
-    audio_records = [
-        {
-            "audio_id": "A1001",
-            "user": "Customer_1",
-            "duration_sec": random.randint(30,600),
-            "sentiment": random.choice(["Calm","Angry","Frustrated","Happy"]),
-            "category":"Customer Support",
-            "storage":"Object Storage + Metadata in Document DB"
-        }
-        for i in range(500)
-    ]
-
-    audio_df = pd.DataFrame(audio_records)
-
-    st.json(audio_df.sample(2).to_dict(orient="records"))
-
-    st.info("""
-Audio is NOT stored in traditional DB tables.
-Instead:
-🎵 Audio File → Stored in Object Storage (S3 / GCS / Azure Blob)  
-📄 Metadata → Stored in NoSQL (MongoDB / Cassandra / Elastic)
-""")
-
-    # ---------- AUDIO ANALYTICS ----------
-    st.subheader("📊 Audio Analytics")
+    st.subheader("📊 Trending Analytics")
 
     col1,col2 = st.columns(2)
 
     with col1:
-        st.write("### Sentiment From Voice Tone")
-        st.bar_chart(audio_df["sentiment"].value_counts())
+        if st.button("Find Trending Hashtags"):
+            hashtags = " ".join(tweets_df["tweet"]).split()
+            tags=[t for t in hashtags if "#" in t]
+            st.success(Counter(tags).most_common(5))
 
     with col2:
-        st.write("### Duration Distribution")
-        duration_data = (
-            audio_df["duration_sec"]
-            .value_counts(bins=5)
-            .sort_index()
-        )
-        st.bar_chart(duration_data)
+        if st.button("Popular Users Simulation"):
+            popular = tweets_df.sort_values(by="likes",ascending=False).head(5)
+            st.table(popular)
 
-    st.audio("https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav")
+    st.bar_chart(tweets_df["likes"])
 
-    st.success("""
-Audio + NoSQL:
-✔ Store millions of recordings  
-✔ Fast metadata search  
-✔ Run AI / NLP / Speech analysis  
-✔ Perfect for Call Centers, Spotify, Alexa  
-""")
+    st.warning("This is how Twitter/Meta analyze posts at scale.")
 
-# END
+# ==================================================
+# 💰 ECONOMICS
+# ==================================================
+else:
+    st.header("💰 Economics Text Big Data — Real Feel Example")
+
+    st.write("### Thousands of Economic Sentences")
+    st.dataframe(eco_df.head(10))
+
+    st.subheader("📦 Stored as Documents in NoSQL")
+    st.json(eco_df.head(3).to_dict(orient="records"))
+
+    st.subheader("📊 Analytics (Like RBI / Govt Systems)")
+    col1,col2 = st.columns(2)
+
+    with col1:
+        if st.button("Find Most Reported City"):
+            city = eco_df["city"].value_counts().idxmax()
+            st.success(f"Most Economic Mentions: {city}")
+
+    with col2:
+        if st.button("Avg Impact Score"):
+            st.success(f"Impact Score = {eco_df['impact_score'].mean()}")
+
+    st.bar_chart(eco_df.groupby("city")["impact_score"].mean())
+
+    st.info("Shows how economics institutions analyze public sentiment & text data using NoSQL.")
+
