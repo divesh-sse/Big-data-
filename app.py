@@ -207,67 +207,100 @@ Reason:
 # SQL vs COLUMN
 # =========================================================
 elif db_type.startswith("🆚"):
-    st.header("🆚 SQL vs Column Store — Crystal Clear")
+    st.header("🆚 SQL vs Column Store — Deep Clarity")
 
     st.subheader("SQL (Row Storage)")
     st.code("""
-Reads like this:
-Row1 -> Row2 -> Row3
+| user_id | city   | duration |
+|--------|--------|---------|
+| 101    | Mumbai | 180     |
+| 101    | Pune   | 60      |
+| 102    | Delhi  | 200     |
 """)
 
-    st.subheader("Column Storage")
+    st.subheader("Column Store (Column Storage)")
     st.code("""
-Reads like this:
-Duration Column ONLY
+user_id:   101, 101, 102
+city:      Mumbai, Pune, Delhi
+duration:  180, 60, 200
 """)
 
-    if st.button("📊 Show Performance Feel"):
-        st.success("Column DB retrieves only NEEDED column — BOOM ⚡ Speed")
+    if st.button("📊 Retrieve Only Duration Column"):
+        st.success("Column DB: Instant ⚡ \nSQL: Reads entire rows")
+
+    st.success("NOW the difference is crystal clear 😎")
 
 # =========================================================
 # ECONOMICS
 # =========================================================
 elif db_type.startswith("💰"):
-    st.header("💰 Economics Big Data — UPI Example")
+    st.header("💰 Economics Big Data — UPI India Example")
 
-    txn = {
-        "txn_id":"UPI"+str(random.randint(1000,9999)),
+    transaction = {
+        "txn_id":"UPI99229",
         "amount":random.randint(100,2000),
-        "city":random.choice(["Pune","Delhi","Mumbai","Chennai"])
+        "city":random.choice(["Pune","Mumbai","Delhi","Chennai"]),
+        "merchant": random.choice(["Zomato","Swiggy","Amazon","Paytm"]),
+        "time":"10:22PM"
     }
 
-    st.json(txn)
+    st.subheader("👀 Single Transaction Document")
+    st.json(transaction)
 
     col1,col2,col3,col4 = st.columns(4)
 
     with col1:
         if st.button("Store Transaction"):
-            st.success("Stored ✔")
+            st.success("Stored in Document DB ✔")
 
     with col2:
         if st.button("Analyze Spending"):
-            st.success("Realtime Analytics Done ✔")
+            st.success("Column DB → City Wise & User Wise Trends")
 
     with col3:
         if st.button("Give Cashback"):
-            st.success("Decision Made in < 50ms✔")
+            st.success("Key Value DB → Fast Decision 🔥")
 
     with col4:
         if st.button("Detect Fraud"):
-            st.error("Suspicious Repeated Payee ⚠")
+            st.error("Graph DB Detected Suspicious Network ⚠")
 
 # =========================================================
 # MULTIMEDIA (unchanged)
 # =========================================================
 else:
     st.header("🖼 Multimedia in NoSQL (Images • Audio • Video)")
-    st.write("Unchanged — as requested 👍")
+    st.write("NoSQL doesn’t store big binary files directly. It usually stores:")
+    st.write("✔ metadata")
+    st.write("✔ file links / cloud storage locations")
 
+    st.subheader("🖼 Image Storage Example (Document)")
     st.json({
         "image_id":"IMG102",
-        "url":"https://cloudstorage.com/image/profile.png"
+        "file_name":"profile.png",
+        "url":"https://cloudstorage.com/image/profile.png",
+        "belongs_to":"user101"
     })
 
-    st.image("https://picsum.photos/300")
+    st.image("https://picsum.photos/300", caption="Example Image Stored")
+
+    st.subheader("🎧 Audio Storage Example")
+    st.json({
+        "audio_id":"A221",
+        "format":"mp3",
+        "duration":"3min",
+        "location":"https://cloudstorage.com/audio/song.mp3"
+    })
+
     st.audio("https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav")
+
+    st.subheader("🎥 Video Storage Example")
+    st.json({
+        "video_id":"V333",
+        "resolution":"1080p",
+        "cdn":"https://cdn.netflix.com/video/xyz"
+    })
+
     st.video("https://samplelib.com/lib/preview/mp4/sample-5s.mp4")
+
+    st.success("Students will clearly understand multimedia handling now 🎬")
