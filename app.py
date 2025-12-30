@@ -1,184 +1,225 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="NoSQL Demo App", layout="wide")
-
-st.title("🧠 NoSQL Databases — Visual & Intuitive Demo App")
-st.write("This app helps you SEE how different NoSQL databases store data and how we retrieve it conceptually — without coding or database setup.")
+st.set_page_config(page_title="NoSQL Interactive Demo", layout="wide")
+st.title("🧠 Interactive NoSQL Databases Demo")
+st.write("Press buttons, retrieve data, and visually understand how each NoSQL database works — including SQL comparison & economics example!")
 
 db_type = st.sidebar.radio(
-    "Choose NoSQL Type to Explore",
-    ["📄 Document Database (MongoDB)",
-     "🔑 Key–Value Store (Redis / DynamoDB)",
-     "📚 Column Store (Cassandra / HBase)",
-     "🕸 Graph Database (Neo4j)"
+    "Choose Database Type",
+    [
+        "📄 Document DB (MongoDB Style)",
+        "🔑 Key–Value Store (Redis Style)",
+        "📚 Column Store (Cassandra / HBase)",
+        "🕸 Graph Database (Neo4j)",
+        "🆚 SQL vs Column Store Comparison",
+        "💰 Economics Big Data (UPI Example)"
     ]
 )
 
-# ========================= DOCUMENT DB =========================
+# --------------------- DOCUMENT DB ----------------------
 if db_type.startswith("📄"):
-    st.header("📄 Document Database (MongoDB Style)")
-    st.write("""
-Document DB stores data as **documents** (like JSON objects).
-Each record can have different fields. No fixed columns like SQL tables.
-""")
+    st.header("📄 Document Database — MongoDB Style")
+    st.write("Stores data as **JSON-like documents**, flexible structure, no fixed columns.")
 
-    st.subheader("👀 How Data Looks")
-    st.json({
+    sample_doc = {
         "product_id": "P101",
         "name": "iPhone 16",
-        "category": "Mobile",
         "price": 79999,
+        "category": "Mobile",
         "features": ["AI Camera", "Fast Chip"],
-        "reviews": [
+        "ratings": [
             {"user": "Riya", "rating": 5},
             {"user": "Amit", "rating": 4}
-        ],
-        "available": True
-    })
+        ]
+    }
 
-    st.subheader("🎯 What This Means")
-    st.markdown("""
-- Looks like a Python dictionary or JSON
-- Different documents may have different fields
-- Great for flexible, evolving data
+    st.subheader("👀 Stored Document")
+    st.json(sample_doc)
+
+    st.subheader("🎯 Try Retrieving Data")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("Get Mobile Products"):
+            st.success("📦 Found: iPhone 16 — Category: Mobile")
+
+    with col2:
+        if st.button("Get Products Above ₹50,000"):
+            st.success("💎 iPhone 16 — ₹79,999")
+
+    with col3:
+        if st.button("Get Average Rating"):
+            st.success("⭐ Average Rating = 4.5")
+
+
+    st.info("""
+### Why Document DB?
+- Looks like JSON
+- Different records can have different fields
+- Super flexible
 """)
 
-    st.subheader("🔎 Conceptual ‘Query’ Understanding")
-    st.code("""
-Find all products category = 'Mobile'
-Find products price > 50000
-Project only name + price
-Group products and find avg rating
-""")
-
-    st.subheader("🌍 Real-World Applications")
-    st.success("""
-Amazon Products
-User Profiles (Instagram, Facebook)
-Content Management Systems
-E-commerce Catalogs
-""")
-
-
-# ========================= KEY VALUE =========================
+# --------------------- KEY VALUE ----------------------
 elif db_type.startswith("🔑"):
-    st.header("🔑 Key–Value Databases (Redis / DynamoDB Style)")
-    st.write("""
-Stores data as **key → value pairs**.
-Think of it like a super fast dictionary.
-""")
+    st.header("🔑 Key–Value Store — Redis Style")
+    st.write("Stores data as **Key → Value**. Extremely fast. Perfect for real-time.")
 
-    st.subheader("👀 How Data Looks")
+    st.subheader("👀 How Data is Stored")
     st.code("""
-"user:101"   →  "{ name: 'Riya', plan: 'Premium', status: 'Watching' }"
-"session:22" →  "Active"
-"views:video1" → 10592
+"user:101"  →  { name: "Riya", plan: "Premium", status: "Watching" }
+"session:77" → Active
+"video:views" → 10592
 """)
 
-    st.subheader("🎯 Meaning")
-    st.markdown("""
-- KEY = unique identifier
-- VALUE = any data (text, json, number)
-- Extremely FAST
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("Get User 101"):
+            st.success("{ name:'Riya', plan:'Premium'}")
+
+    with col2:
+        if st.button("Check Session"):
+            st.success("Session Active")
+
+    with col3:
+        if st.button("Increase Views"):
+            st.success("Views Updated ✔")
+
+    st.info("""
+### Why Key–Value?
+- Blazing fast
+- Perfect for cache, sessions, live events
+- Used by Netflix, Gaming, Banking OTP
 """)
 
-    st.subheader("🔎 Conceptual ‘Query’ Understanding")
-    st.code("""
-GET user:101
-SET user:101
-INCREASE video views
-Auto delete session after 10 mins
-""")
-
-    st.subheader("🌍 Real Examples")
-    st.success("""
-Netflix — user watch sessions
-Gaming apps — live scores
-Banking — OTP session tracking
-Website caching — blazing speed
-""")
-
-
-# ========================= COLUMN STORE =========================
+# --------------------- COLUMN STORE ----------------------
 elif db_type.startswith("📚"):
-    st.header("📚 Column Store (Cassandra / HBase Style)")
-    st.write("""
-Stores data **column-wise instead of row-wise**.
-Amazing for analytics and big data queries.
-""")
+    st.header("📚 Column Store — Cassandra / HBase")
+    st.write("Stores data **column-wise**, perfect for analytics & big data")
 
-    st.subheader("👀 How Data Looks")
+    st.subheader("👀 Example Telecom Call Logs (Stored Data)")
     df = pd.DataFrame({
-        "user_id":[101,101,102],
-        "date_time":["2025-01-10 10:20PM","2025-01-10 11:10PM","2025-01-10 09:00PM"],
-        "duration(sec)":[180,60,200],
-        "tower_city":["Mumbai","Pune","Delhi"]
+        "user_id": [101,101,102],
+        "date_time": ["2025-01-10 10:20PM","2025-01-10 11:10PM","2025-01-10 09:00PM"],
+        "duration(sec)": [180,60,200],
+        "tower_city": ["Mumbai","Pune","Delhi"]
     })
     st.table(df)
 
-    st.subheader("🎯 Meaning")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("Get All Calls of User 101"):
+            st.success("""
+101 | 2025-01-10 10:20PM | 180 sec | Mumbai
+101 | 2025-01-10 11:10PM | 60 sec | Pune
+""")
+
+    with col2:
+        if st.button("Get Last 1 Call"):
+            st.success("101 → 60 sec | Pune")
+
+    with col3:
+        if st.button("Get Total Usage of 101"):
+            st.success("Total = 240 sec")
+
+    st.warning("""
+### Clear Understanding
+SQL reads **row by row**
+Column DB reads **column by column**
+So analytics becomes SUPER FAST
+""")
+
+# --------------------- GRAPH DB ----------------------
+elif db_type.startswith("🕸"):
+    st.header("🕸 Graph Database — Neo4j Style")
+    st.write("Focus on **relationships**. Stores data as Nodes + Connections.")
+
+    st.subheader("👀 Conceptual Stored Data")
     st.markdown("""
-- Data grouped by **user**
-- Fast when reading specific columns
-- Optimized for time-series & analytics
-""")
-
-    st.subheader("🔎 Conceptual ‘Query’ Understanding")
-    st.code("""
-Get all calls of user 101
-Get last 10 recent calls
-Get total usage by user
-""")
-
-    st.subheader("🌍 Real Examples")
-    st.success("""
-Telecom call records (Jio, Airtel)
-IoT sensor streams
-Bank transaction analytics
-Log analysis (Big Data)
-""")
-
-
-# ========================= GRAPH DB =========================
-else:
-    st.header("🕸 Graph Database (Neo4j Style)")
-    st.write("""
-Graph DB is built for **relationships**.
-Data is stored as:
-- Nodes (people, accounts, devices)
-- Relationships (connected to, transferred to)
-""")
-
-    st.subheader("👀 How Data Looks Conceptually")
-    st.markdown("""
-**Example: Fraud Detection**
 ```
 (User A) ---- TRANSFERRED ----> (Account X)
 (Account X) ---- TRANSFERRED ----> (Account Y)
-(Account Y) ---- OWNS ----> (User B)
+(Account Y) ---- OWNED BY ----> (User B)
 ```
 """)
 
-    st.subheader("🎯 Meaning")
-    st.markdown("""
-- We CARE about connections
-- Perfect for exploring networks
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Find Connections of User A"):
+            st.success("User A → Account X → Account Y → User B")
+
+    with col2:
+        if st.button("Detect Fraud Ring"):
+            st.error("⚠ Suspicious Loop Detected")
+
+    st.info("""
+### Why Graph DB?
+- Best for fraud detection
+- Best for social networks
+- Best for recommendations
 """)
 
-    st.subheader("🔎 Conceptual ‘Query’ Understanding")
+# --------------------- SQL VS COLUMN STORE ----------------------
+elif db_type.startswith("🆚"):
+    st.header("🆚 SQL vs Column Store — Visual Clarity")
+
+    st.subheader("SQL (Row Based)")
     st.code("""
-Find all friends of a user
-Find money transfer chains
-Detect suspicious network
+| user_id | city   | duration |
+|--------|--------|---------|
+| 101    | Mumbai | 180     |
+| 101    | Pune   | 60      |
+| 102    | Delhi  | 200     |
 """)
 
-    st.subheader("🌍 Real Uses")
-    st.success("""
-Facebook / LinkedIn — social graph
-Banks — fraud detection
-Amazon / Netflix — recommendation engine
-Knowledge graphs
+    st.subheader("Column Store (Column Based)")
+    st.code("""
+user_id:   101, 101, 102
+city:      Mumbai, Pune, Delhi
+duration:  180, 60, 200
 """)
 
-st.info("Move through the sidebar to explore each type. This app is meant to **build intuition** and make NoSQL concepts visual and simple.")
+    if st.button("Retrieve Duration for Analytics"):
+        st.success("Column DB retrieves duration instantly ⚡")
+
+    st.info("""
+SQL = best for transactions  
+Column Store = best for analytics
+""")
+
+# --------------------- ECONOMICS EXAMPLE ----------------------
+else:
+    st.header("💰 Economics Big Data — UPI Example")
+    st.write("Millions of UPI transactions per minute. NoSQL powers this.")
+
+    st.subheader("👀 Transaction as Document")
+    st.json({
+        "txn_id":"UPI99229",
+        "amount":280,
+        "city":"Pune",
+        "merchant":"Zomato",
+        "time":"10:22PM"
+    })
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        if st.button("Store Transaction"):
+            st.success("Stored in Document DB")
+
+    with col2:
+        if st.button("Analyze Spending"):
+            st.success("Column DB → City spending trends")
+
+    with col3:
+        if st.button("Apply Cashback"):
+            st.success("Key-Value DB → Fast decision")
+
+    with col4:
+        if st.button("Detect Fraud Network"):
+            st.error("Graph DB Found Suspicious Links")
+
+    st.success("This is real Big Data happening in our economy every second 🚀")
